@@ -24,13 +24,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
-
 from PIL import Image
 
 from .config import OCRConfig
 
+
 if TYPE_CHECKING:
-    pass
+    ...  # placeholder for future type-only imports
 
 
 @dataclass

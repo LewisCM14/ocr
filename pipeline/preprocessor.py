@@ -115,7 +115,7 @@ class ImagePreprocessor:
         """
         # Invert so text pixels are white (required for threshold)
         _, thresh = cv2.threshold(arr, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        coords = np.column_stack(np.where(thresh > 0))
+        coords = np.column_stack(np.nonzero(thresh > 0))
 
         if len(coords) < 5:
             return 0.0

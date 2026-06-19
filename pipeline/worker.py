@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from loguru import logger
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -111,7 +111,7 @@ def mark_complete(
     with Session(engine) as session:
         image = session.get(OCRImage, image_id)
         image.status = "complete"
-        image.completed_at = datetime.utcnow()
+        image.completed_at = datetime.now(timezone.utc)
         image.output_path = result["output_base"]
         image.page_count = result["page_count"]
 
@@ -146,22 +146,8 @@ def mark_error(engine: Engine, image_id: int, error: str, max_retries: int) -> N
 # ── Single-image processing ───────────────────────────────────────────────────
 
 
-def process_image(
-    file_path: str,
-    input_root: str,
-    output_root: str,
-    cfg: Config,
-    preprocessor: ImagePreprocessor,
-    ocr_engine: Any,
-) -> dict:
-    """
-    Process all pages of one TIFF file.
-    Returns a result dict consumed by mark_complete().
-    """
-    wall_start = time.monotonic()
+def _compute_paths(file_path: str, input_root: str, output_root: str):
     src = Path(file_path)
-
-    # Mirror input directory structure under output_root
     try:
         rel = src.relative_to(input_root)
     except ValueError:
@@ -170,40 +156,47 @@ def process_image(
     out_dir = Path(output_root) / rel.parent
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = src.stem
+    return src, rel, out_dir, stem
 
-    pages: list[dict] = []
-    full_text_parts: list[str] = []
-    pdf_pages: list[
-        bytes
-    ] = []  # per-page PDF bytes from Tesseract (populated when pdf format is enabled)
+
+def _determine_write_pdf(cfg: Config) -> bool:
     write_pdf = "pdf" in cfg.output.formats
-
     if write_pdf and cfg.ocr.engine != "tesseract":
         logger.warning(
             "Searchable PDF output requires ocr.engine = 'tesseract'. "
             "PDF will not be written for this image."
         )
         write_pdf = False
+    return write_pdf
 
-    img = Image.open(file_path)
+
+def _get_ocr_input(
+    page_frame: Image.Image, cfg: Config, preprocessor: ImagePreprocessor
+) -> Image.Image:
+    if cfg.preprocessing.enabled:
+        processed = preprocessor.process_page(page_frame)
+        return processed.image
+    return page_frame.convert("L") if page_frame.mode != "L" else page_frame
+
+
+def _process_pages(
+    img: Image.Image,
+    cfg: Config,
+    preprocessor: ImagePreprocessor,
+    ocr_engine: Any,
+    write_pdf: bool,
+):
+    pages: list[dict] = []
+    full_text_parts: list[str] = []
+    pdf_pages: list[bytes] = []
     page_num = 0
 
     try:
         while True:
             page_num += 1
-            # Copy so the seek loop can advance without corrupting the working frame
             page_frame = img.copy()
+            ocr_input = _get_ocr_input(page_frame, cfg, preprocessor)
 
-            # Preprocessing
-            if cfg.preprocessing.enabled:
-                processed = preprocessor.process_page(page_frame)
-                ocr_input = processed.image
-            else:
-                ocr_input = (
-                    page_frame.convert("L") if page_frame.mode != "L" else page_frame
-                )
-
-            # OCR
             page_t0 = time.monotonic()
             ocr_result = ocr_engine.process_page(ocr_input)
             page_ms = int((time.monotonic() - page_t0) * 1000)
@@ -220,42 +213,56 @@ def process_image(
                     "processing_time_ms": page_ms,
                 }
             )
+
             if ocr_result.text:
                 full_text_parts.append(ocr_result.text)
 
-            # Collect per-page searchable PDF bytes while the preprocessed image
-            # is already in memory — no second preprocessing pass needed.
             if write_pdf:
-                pdf_page_bytes = _tesseract_page_to_pdf(
-                    ocr_input, cfg.ocr.language, cfg.ocr.tesseract_config
+                pdf_pages.append(
+                    _tesseract_page_to_pdf(
+                        ocr_input, cfg.ocr.language, cfg.ocr.tesseract_config
+                    )
                 )
-                pdf_pages.append(pdf_page_bytes)
 
-            img.seek(img.tell() + 1)  # advance to next TIFF frame
+            img.seek(img.tell() + 1)
     except EOFError:
-        pass  # no more pages — normal exit
+        pass
+
+    return pages, full_text_parts, pdf_pages, page_num
+
+
+def process_image(
+    file_path: str,
+    input_root: str,
+    output_root: str,
+    cfg: Config,
+    preprocessor: ImagePreprocessor,
+    ocr_engine: Any,
+) -> dict:
+    """Process all pages of one TIFF file and return registration info."""
+    wall_start = time.monotonic()
+
+    src, rel, out_dir, stem = _compute_paths(file_path, input_root, output_root)
+    write_pdf = _determine_write_pdf(cfg)
+
+    img = Image.open(file_path)
+    pages, full_text_parts, pdf_pages, page_num = _process_pages(
+        img, cfg, preprocessor, ocr_engine, write_pdf
+    )
 
     total_ms = int((time.monotonic() - wall_start) * 1000)
     full_text = "\n\n--- Page Break ---\n\n".join(full_text_parts)
     output_base = str(out_dir / stem)
 
-    # ── Write searchable PDF ─────────────────────────────────────────────
-    # Each page PDF produced by Tesseract contains the original (preprocessed)
-    # image with an invisible Unicode text layer precisely positioned over each
-    # recognised word.  pypdf merges the pages into a single PDF file that any
-    # PDF reader can open and search with Ctrl+F.
     if write_pdf and pdf_pages:
         _merge_pdf_pages(pdf_pages, out_dir / f"{stem}.pdf")
 
-    # ── Write plain text ──────────────────────────────────────────────────
     if "txt" in cfg.output.formats:
         txt_path = out_dir / f"{stem}.txt"
         txt_path.write_text(full_text, encoding="utf-8")
 
-    # ── Write JSON (Elasticsearch-ready) ──────────────────────────────────
     if "json" in cfg.output.formats:
         json_doc = {
-            # Core fields — these become the Elasticsearch document
             "source_path": file_path,
             "file_name": src.name,
             "relative_path": str(rel).replace("\\", "/"),
@@ -263,7 +270,6 @@ def process_image(
             "page_count": page_num,
             "full_text": full_text,
             "pages": pages,
-            # Provenance / audit
             "ocr_engine": cfg.ocr.engine,
             "ocr_language": cfg.ocr.language,
             "ocr_config": cfg.ocr.tesseract_config,
@@ -387,7 +393,7 @@ def worker_loop(config_path: str) -> None:
                     f"pages={result['page_count']} | "
                     f"time={result['total_ms']}ms"
                 )
-            except (UnidentifiedImageError, OSError) as exc:
+            except OSError as exc:
                 errors += 1
                 logger.error(f"[FAIL] {file_path} | {exc}")
                 mark_error(engine, image_id, str(exc), cfg.pipeline.max_retries)

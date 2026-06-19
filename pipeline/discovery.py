@@ -28,14 +28,24 @@ def iter_tiff_files(cfg: InputConfig) -> Iterator[Path]:
     extensions = {ext.lower() for ext in cfg.extensions}
 
     if cfg.recursive:
-        for dirpath, _dirnames, filenames in os.walk(root):
-            for filename in filenames:
-                if Path(filename).suffix.lower() in extensions:
-                    yield Path(dirpath) / filename
+        yield from _iter_tiff_files_recursive(root, extensions)
     else:
-        for entry in os.scandir(root):
-            if entry.is_file() and Path(entry.name).suffix.lower() in extensions:
-                yield Path(entry.path)
+        yield from _iter_tiff_files_non_recursive(root, extensions)
+
+
+def _iter_tiff_files_recursive(root: Path, extensions: set[str]) -> Iterator[Path]:
+    """Recursive generator for TIFF files under `root`."""
+    for dirpath, _dirnames, filenames in os.walk(root):
+        for filename in filenames:
+            if Path(filename).suffix.lower() in extensions:
+                yield Path(dirpath) / filename
+
+
+def _iter_tiff_files_non_recursive(root: Path, extensions: set[str]) -> Iterator[Path]:
+    """Non-recursive generator for TIFF files directly under `root`."""
+    for entry in os.scandir(root):
+        if entry.is_file() and Path(entry.name).suffix.lower() in extensions:
+            yield Path(entry.path)
 
 
 def register_images(engine: Engine, cfg: InputConfig, batch_size: int = 500) -> dict:

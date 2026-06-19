@@ -1,0 +1,10 @@
+[run]
+# Use repository root as single coverage source to avoid multiple <source>
+source = .
+
+[report]
+omit =
+    tests/*
+    .venv/*
+    venv/*
+    */__pycache__/*

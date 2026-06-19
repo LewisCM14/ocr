@@ -132,7 +132,12 @@ def _make_easyocr_engine(mocker, read_results=None):
     mock_easyocr = MagicMock()
     mocker.patch.dict(sys.modules, {"easyocr": mock_easyocr})
 
-    import numpy as np  # real numpy
+    # Lightweight numpy-like stub used for tests (avoids importing C extensions)
+    class _NpStub:
+        def array(self, img):
+            return img
+
+    np = _NpStub()
 
     engine = EasyOCREngine.__new__(EasyOCREngine)
     engine._np = np
@@ -173,7 +178,12 @@ def _make_paddle_engine(mocker, ocr_results=None):
     mock_paddle = MagicMock()
     mocker.patch.dict(sys.modules, {"paddleocr": mock_paddle})
 
-    import numpy as np  # real numpy
+    # Lightweight numpy-like stub used for tests (avoids importing C extensions)
+    class _NpStub:
+        def array(self, img):
+            return img
+
+    np = _NpStub()
 
     engine = PaddleOCREngine.__new__(PaddleOCREngine)
     engine._np = np

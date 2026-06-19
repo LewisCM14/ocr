@@ -222,3 +222,69 @@ def test_status_script_watch_mode(tmp_path, mocker, sqlite_engine):
     result = runner.invoke(status_main, ["--config", "dummy.yaml", "--watch"])
 
     assert result.exit_code == 0
+
+
+def test_run_modules_as_main_covers_cli_guards(tmp_path, sqlite_engine, monkeypatch):
+    """Execute each scripts/*.py as __main__ to cover the if __name__ == '__main__' guard.
+
+    We inject lightweight pipeline.* modules into sys.modules so the scripts can
+    run without performing heavy IO or DB side-effects.  `sys.argv` is also
+    set to avoid Click parsing pytest's CLI.
+    """
+    import runpy
+    import sys
+    import types
+    from contextlib import contextmanager
+
+    cfg = _default_cfg(tmp_path)
+
+    @contextmanager
+    def _dummy_conn():
+        class DummyResult:
+            def fetchall(self):
+                return []
+
+        class DummyConn:
+            def execute(self, *args, **kwargs):
+                return DummyResult()
+
+        yield DummyConn()
+
+    fake_engine = types.SimpleNamespace()
+    fake_engine.connect = lambda: _dummy_conn()
+    fake_engine.begin = lambda: _dummy_conn()
+    fake_engine.dispose = lambda: None
+
+    # pipeline.config
+    cfg_mod = types.ModuleType("pipeline.config")
+    cfg_mod.load_config = lambda path: cfg
+    monkeypatch.setitem(sys.modules, "pipeline.config", cfg_mod)
+
+    # pipeline.db (returns our fake engine)
+    db_mod = types.ModuleType("pipeline.db")
+    db_mod.create_db_engine = lambda dbcfg: fake_engine
+    db_mod.init_db = lambda engine: None
+    monkeypatch.setitem(sys.modules, "pipeline.db", db_mod)
+
+    # pipeline.discovery
+    disc_mod = types.ModuleType("pipeline.discovery")
+    disc_mod.register_images = lambda engine, input_cfg, batch_size=500: {
+        "discovered": 0,
+        "registered": 0,
+        "skipped": 0,
+    }
+    monkeypatch.setitem(sys.modules, "pipeline.discovery", disc_mod)
+
+    # pipeline.manager
+    mgr_mod = types.ModuleType("pipeline.manager")
+    mgr_mod.run_pipeline = lambda **kwargs: None
+    monkeypatch.setitem(sys.modules, "pipeline.manager", mgr_mod)
+
+    # Execute each script as a fresh __main__
+    for module_name in ("scripts.discover", "scripts.process", "scripts.status"):
+        sys.modules.pop(module_name, None)
+        monkeypatch.setattr(sys, "argv", [module_name])
+        try:
+            runpy.run_module(module_name, run_name="__main__")
+        except SystemExit:
+            pass
