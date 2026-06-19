@@ -1,0 +1,26 @@
+name: ocr-pipeline
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  # Tesseract OCR engine + Python bindings
+  - tesseract=5.3.*
+  - pytesseract=0.3.*
+  # Image handling and preprocessing
+  - pillow>=10.0
+  - opencv>=4.8          # conda-forge package name (includes Python bindings)
+  - numpy>=1.26
+  - scikit-image>=0.22   # Sauvola binarization for historical docs
+  # Database
+  - sqlalchemy>=2.0
+  - pyodbc>=4.0          # MSSQL ODBC driver wrapper
+  # Configuration and CLI
+  - pyyaml>=6.0
+  - click>=8.1
+  # Searchable PDF output
+  - pypdf>=4.0             # merge per-page PDFs produced by Tesseract
+  # Monitoring and logging
+  - tqdm>=4.66
+  - loguru>=0.7
+  - psutil>=5.9

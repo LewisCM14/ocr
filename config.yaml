@@ -1,0 +1,87 @@
+# =============================================================================
+# OCR Pipeline Configuration
+# Copy this file and adjust all paths and credentials before running.
+# =============================================================================
+
+database:
+  # SQL Server instance name or IP address
+  server: "localhost"
+  database: "ocr_pipeline"
+  # ODBC driver - "ODBC Driver 17 for SQL Server" or "ODBC Driver 18 for SQL Server"
+  driver: "ODBC Driver 17 for SQL Server"
+  # Use Windows Authentication (recommended for on-premises servers)
+  trusted_connection: true
+  # SQL Authentication (set trusted_connection: false to use these)
+  # username: "ocr_user"
+  # password: "your_password"
+
+input:
+  # Root directory containing the TIFF images
+  root_path: "C:\\images"
+  extensions:
+    - ".tif"
+    - ".tiff"
+  # Scan subdirectories recursively
+  recursive: true
+
+output:
+  # Root directory for OCR output. Directory structure mirrors the input tree.
+  root_path: "C:\\ocr_output"
+  # Output formats written for each image
+  formats:
+    - "txt"   # Plain UTF-8 text file
+    - "json"  # Structured JSON ready for Elasticsearch ingestion
+    # - "pdf"  # Searchable PDF — original image with invisible OCR text layer
+    #            # Requires ocr.engine = "tesseract". Opens in any PDF reader
+    #            # and supports Ctrl+F text search. Uncomment to enable.
+
+ocr:
+  # Engine to use. Currently supported: tesseract
+  # Future GPU-capable alternatives: easyocr, paddleocr (see ocr_engine.py)
+  engine: "tesseract"
+  # Tesseract language pack(s). Use "eng+fra" for multiple languages.
+  language: "eng"
+  # --oem 1  = LSTM neural net mode (best accuracy, recommended for Tesseract 5)
+  # --psm 3  = Fully automatic page segmentation (best for mixed layouts)
+  # For single-column docs: --psm 6
+  tesseract_config: "--oem 1 --psm 3"
+  # Override Tesseract binary path if it is not on PATH.
+  # Leave commented out when using the conda environment (tesseract is on PATH).
+  # tesseract_cmd: "C:\\tools\\tesseract\\tesseract.exe"
+  # DPI to assume when image metadata is missing or untrustworthy
+  default_dpi: 300
+
+preprocessing:
+  # Enable the full preprocessing chain (strongly recommended for old scans)
+  enabled: true
+  # Images with DPI below this threshold are upscaled before OCR
+  min_dpi: 200
+  # Target DPI after upscaling. Tesseract is optimised for 300 DPI.
+  target_dpi: 300
+  # Detect and correct page rotation (important for scanned documents)
+  deskew: true
+  # Only apply deskew correction if the detected angle exceeds this value (degrees)
+  deskew_threshold_degrees: 0.5
+  # Apply non-local means denoising (helps with scan noise and aging artifacts)
+  denoise: true
+  # Denoising filter strength. Higher = more aggressive. Range 3–15.
+  denoise_strength: 10
+  # Binarization method:
+  #   sauvola  - adaptive thresholding, best for uneven illumination (recommended)
+  #   otsu     - global thresholding, faster but less tolerant of lighting variation
+  #   none     - skip binarization (pass grayscale directly to Tesseract)
+  binarization: "sauvola"
+
+pipeline:
+  # Number of parallel worker processes
+  num_workers: 4
+  # Images claimed per worker per DB round-trip
+  batch_size: 10
+  # Maximum processing attempts per image before marking it permanently failed
+  max_retries: 3
+  # Images stuck in 'processing' state for longer than this (minutes) are
+  # automatically reset to 'pending' to recover from crashed workers.
+  stale_processing_minutes: 60
+  log_level: "INFO"
+  # Worker log files are written to this directory (relative to working directory)
+  log_dir: "logs"
