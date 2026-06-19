@@ -257,6 +257,33 @@ python scripts/process.py --workers 8
 python scripts/status.py --watch
 ```
 
+### Local demo (no DB required)
+
+If you want to try the pipeline flow quickly without configuring a SQL Server,
+use the included demo utilities to generate a small synthetic TIFF and run a
+lightweight local OCR pass that writes the same `.txt` and `.json` outputs the
+pipeline would produce.
+
+1. Generate the demo TIFF:
+
+```bash
+python tools/generate_demo_tiff.py assets/demo.tiff --pages 3 --dpi 300
+```
+
+2. Run the lightweight demo processor (uses `pytesseract` when available,
+  otherwise falls back to placeholder text):
+
+```bash
+python tools/run_demo_local.py assets/demo.tiff --out demo_output
+```
+
+3. Inspect results in `demo_output/` — you should find `demo.txt` and
+  `demo.json` showing per-page text and metadata.
+
+To exercise the *full* pipeline instead, point your `config.yaml` `input.root_path`
+at the `assets/` directory created above and run `scripts/discover.py` and
+`scripts/process.py` as described earlier (requires a configured database).
+
 ---
 
 ## Configuration Reference

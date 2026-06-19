@@ -1,0 +1,36 @@
+{
+  "source_path": "assets/demo.tiff",
+  "file_name": "demo.tiff",
+  "relative_path": "demo.tiff",
+  "file_size_bytes": 3240576,
+  "page_count": 3,
+  "full_text": "DEMO OCR TEXT (pytesseract not available)\n\n--- Page Break ---\n\nDEMO OCR TEXT (pytesseract not available)\n\n--- Page Break ---\n\nDEMO OCR TEXT (pytesseract not available)",
+  "pages": [
+    {
+      "page_number": 1,
+      "text": "DEMO OCR TEXT (pytesseract not available)",
+      "confidence": 0.0,
+      "word_count": 6,
+      "char_count": 41,
+      "processing_time_ms": 0
+    },
+    {
+      "page_number": 2,
+      "text": "DEMO OCR TEXT (pytesseract not available)",
+      "confidence": 0.0,
+      "word_count": 6,
+      "char_count": 41,
+      "processing_time_ms": 0
+    },
+    {
+      "page_number": 3,
+      "text": "DEMO OCR TEXT (pytesseract not available)",
+      "confidence": 0.0,
+      "word_count": 6,
+      "char_count": 41,
+      "processing_time_ms": 0
+    }
+  ],
+  "ocr_engine": "pytesseract",
+  "processed_at": "2026-06-19T23:28:36+0100"
+}
