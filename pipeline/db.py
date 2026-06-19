@@ -4,8 +4,14 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import (
-    BigInteger, DateTime, Float, ForeignKey, Integer,
-    String, Text, UniqueConstraint,
+    BigInteger,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -21,7 +27,11 @@ class Base(DeclarativeBase):
 class OCRImage(Base):
     __tablename__ = "ocr_images"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     file_path: Mapped[str] = mapped_column(String(1000), nullable=False, unique=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
@@ -48,7 +58,11 @@ class OCRResult(Base):
         UniqueConstraint("image_id", "page_number", name="UQ_ocr_results_image_page"),
     )
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"),
+        primary_key=True,
+        autoincrement=True,
+    )
     image_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("ocr_images.id"), nullable=False
     )

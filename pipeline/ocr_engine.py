@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 @dataclass
 class PageOCRResult:
     text: str
-    confidence: float   # 0.0 – 1.0
+    confidence: float  # 0.0 – 1.0
     engine: str
 
 
@@ -47,6 +47,7 @@ class OCREngine(ABC):
 
 
 # ── Tesseract ─────────────────────────────────────────────────────────────────
+
 
 class TesseractEngine(OCREngine):
     """
@@ -76,8 +77,12 @@ class TesseractEngine(OCREngine):
         text = self._pt.image_to_string(image, lang=self._lang, config=self._config)
 
         # Tesseract reports confidence 0–100; -1 means the token has no score.
-        valid_confs = [c for c in data["conf"] if isinstance(c, (int, float)) and c >= 0]
-        mean_conf = (sum(valid_confs) / len(valid_confs) / 100.0) if valid_confs else 0.0
+        valid_confs = [
+            c for c in data["conf"] if isinstance(c, (int, float)) and c >= 0
+        ]
+        mean_conf = (
+            (sum(valid_confs) / len(valid_confs) / 100.0) if valid_confs else 0.0
+        )
 
         return PageOCRResult(
             text=text.strip(),
@@ -87,6 +92,7 @@ class TesseractEngine(OCREngine):
 
 
 # ── EasyOCR (GPU upgrade path) ────────────────────────────────────────────────
+
 
 class EasyOCREngine(OCREngine):
     """
@@ -109,10 +115,13 @@ class EasyOCREngine(OCREngine):
         confs = [r[2] for r in results]
         text = " ".join(texts)
         mean_conf = (sum(confs) / len(confs)) if confs else 0.0
-        return PageOCRResult(text=text.strip(), confidence=round(mean_conf, 4), engine="easyocr")
+        return PageOCRResult(
+            text=text.strip(), confidence=round(mean_conf, 4), engine="easyocr"
+        )
 
 
 # ── PaddleOCR (GPU upgrade path) ──────────────────────────────────────────────
+
 
 class PaddleOCREngine(OCREngine):
     """
@@ -126,7 +135,9 @@ class PaddleOCREngine(OCREngine):
 
         self._np = np
         lang = cfg.language.split("+")[0]
-        self._ocr = PaddleOCR(use_angle_cls=True, lang=lang, use_gpu=use_gpu, show_log=False)
+        self._ocr = PaddleOCR(
+            use_angle_cls=True, lang=lang, use_gpu=use_gpu, show_log=False
+        )
 
     def process_page(self, image: Image.Image) -> PageOCRResult:
         arr = self._np.array(image)
@@ -136,10 +147,13 @@ class PaddleOCREngine(OCREngine):
         confs = [line[1][1] for line in lines if line]
         text = "\n".join(texts)
         mean_conf = (sum(confs) / len(confs)) if confs else 0.0
-        return PageOCRResult(text=text.strip(), confidence=round(mean_conf, 4), engine="paddleocr")
+        return PageOCRResult(
+            text=text.strip(), confidence=round(mean_conf, 4), engine="paddleocr"
+        )
 
 
 # ── Factory ───────────────────────────────────────────────────────────────────
+
 
 def create_engine(cfg: OCRConfig) -> OCREngine:
     if cfg.engine == "tesseract":

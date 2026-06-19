@@ -35,11 +35,13 @@ from .preprocessor import ImagePreprocessor
 
 # ── Worker identity ───────────────────────────────────────────────────────────
 
+
 def _worker_id() -> str:
     return f"{socket.gethostname()}-{os.getpid()}"
 
 
 # ── Database helpers ──────────────────────────────────────────────────────────
+
 
 def claim_batch(
     engine: Engine,
@@ -103,7 +105,9 @@ def reset_stale(engine: Engine, stale_minutes: int) -> int:
     return result.rowcount
 
 
-def mark_complete(engine: Engine, image_id: int, result: dict, ocr_engine_name: str) -> None:
+def mark_complete(
+    engine: Engine, image_id: int, result: dict, ocr_engine_name: str
+) -> None:
     with Session(engine) as session:
         image = session.get(OCRImage, image_id)
         image.status = "complete"
@@ -141,6 +145,7 @@ def mark_error(engine: Engine, image_id: int, error: str, max_retries: int) -> N
 
 # ── Single-image processing ───────────────────────────────────────────────────
 
+
 def process_image(
     file_path: str,
     input_root: str,
@@ -168,7 +173,9 @@ def process_image(
 
     pages: list[dict] = []
     full_text_parts: list[str] = []
-    pdf_pages: list[bytes] = []  # per-page PDF bytes from Tesseract (populated when pdf format is enabled)
+    pdf_pages: list[
+        bytes
+    ] = []  # per-page PDF bytes from Tesseract (populated when pdf format is enabled)
     write_pdf = "pdf" in cfg.output.formats
 
     if write_pdf and cfg.ocr.engine != "tesseract":
@@ -192,7 +199,9 @@ def process_image(
                 processed = preprocessor.process_page(page_frame)
                 ocr_input = processed.image
             else:
-                ocr_input = page_frame.convert("L") if page_frame.mode != "L" else page_frame
+                ocr_input = (
+                    page_frame.convert("L") if page_frame.mode != "L" else page_frame
+                )
 
             # OCR
             page_t0 = time.monotonic()
@@ -204,7 +213,9 @@ def process_image(
                     "page_number": page_num,
                     "text": ocr_result.text,
                     "confidence": ocr_result.confidence,
-                    "word_count": len(ocr_result.text.split()) if ocr_result.text else 0,
+                    "word_count": len(ocr_result.text.split())
+                    if ocr_result.text
+                    else 0,
                     "char_count": len(ocr_result.text) if ocr_result.text else 0,
                     "processing_time_ms": page_ms,
                 }
@@ -275,6 +286,7 @@ def process_image(
 
 # ── Searchable PDF helpers ───────────────────────────────────────────────────
 
+
 def _tesseract_page_to_pdf(image: Any, language: str, config: str) -> bytes:
     """
     Ask Tesseract to render a single PIL Image as a PDF with an embedded text
@@ -309,6 +321,7 @@ def _merge_pdf_pages(pdf_pages: list[bytes], output_path: Path) -> None:
 
 # ── Worker loop (entry point for each subprocess) ─────────────────────────────
 
+
 def worker_loop(config_path: str) -> None:
     """
     Main loop executed by each worker process.
@@ -338,7 +351,9 @@ def worker_loop(config_path: str) -> None:
     try:
         reset_count = reset_stale(engine, cfg.pipeline.stale_processing_minutes)
         if reset_count:
-            logger.info(f"Reset {reset_count} stale 'processing' items back to 'pending'")
+            logger.info(
+                f"Reset {reset_count} stale 'processing' items back to 'pending'"
+            )
     except Exception as exc:
         logger.warning(f"Stale reset failed (non-fatal): {exc}")
 
@@ -381,6 +396,4 @@ def worker_loop(config_path: str) -> None:
                 logger.exception(f"[FAIL] {file_path} | unexpected error: {exc}")
                 mark_error(engine, image_id, str(exc), cfg.pipeline.max_retries)
 
-    logger.info(
-        f"Worker {worker_id} finished — processed={processed}, errors={errors}"
-    )
+    logger.info(f"Worker {worker_id} finished — processed={processed}, errors={errors}")

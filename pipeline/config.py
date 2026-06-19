@@ -42,6 +42,7 @@ class PreprocessingConfig:
     enabled: bool = True
     min_dpi: int = 200
     target_dpi: int = 300
+    default_dpi: int = 300  # assumed DPI when image metadata is absent/invalid
     deskew: bool = True
     deskew_threshold_degrees: float = 0.5
     denoise: bool = True

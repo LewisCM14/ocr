@@ -135,7 +135,9 @@ class ImagePreprocessor:
         h, w = arr.shape[:2]
         M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
         return cv2.warpAffine(
-            arr, M, (w, h),
+            arr,
+            M,
+            (w, h),
             flags=cv2.INTER_CUBIC,
             borderMode=cv2.BORDER_CONSTANT,
             borderValue=255,

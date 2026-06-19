@@ -11,7 +11,6 @@ the CLI scripts is therefore mandatory.
 
 from __future__ import annotations
 
-import sys
 import threading
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -26,6 +25,7 @@ from .worker import worker_loop
 
 
 # ── Progress monitor ─────────────────────────────────────────────────────────
+
 
 def _monitor(engine, stop_event: threading.Event, interval_seconds: int = 30) -> None:
     """Background thread: logs pipeline progress every `interval_seconds`."""
@@ -59,6 +59,7 @@ def _monitor(engine, stop_event: threading.Event, interval_seconds: int = 30) ->
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
+
 
 def run_pipeline(config_path: str, num_workers: int | None = None) -> None:
     """
