@@ -61,6 +61,7 @@ ocr_output/
 images/
 *.tif
 *.tiff
+!assets/demo.tiff
 
 # Temporary / local config overrides (keep config.yaml.example committed)
 config.local.yaml
