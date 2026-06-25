@@ -1,36 +1,24 @@
 {
-  "source_path": "assets/demo.tiff",
+  "source_path": "C:\\Users\\lmartin\\repos\\ocr\\assets\\demo.tiff",
   "file_name": "demo.tiff",
   "relative_path": "demo.tiff",
-  "file_size_bytes": 3240576,
-  "page_count": 3,
-  "full_text": "DEMO OCR TEXT (pytesseract not available)\n\n--- Page Break ---\n\nDEMO OCR TEXT (pytesseract not available)\n\n--- Page Break ---\n\nDEMO OCR TEXT (pytesseract not available)",
+  "file_size_bytes": 1251352,
+  "page_count": 1,
+  "full_text": "a\nq\né are a o> 4)\nSs\non\nAAT: 1)\n@ @ General tolerance DIN S0 2768 -medium\nq Fi Cerrar tren sharp ates Q1-O.nm 32,7\nZI, = Scratches and dents are not acceptable )\n[ | ' ecrranecra|\n0565°@ 7 AZ\n2@ patie) vometry_lathe_\nsample_v20 (1)\n\nStanlees Steet G",
   "pages": [
     {
       "page_number": 1,
-      "text": "DEMO OCR TEXT (pytesseract not available)",
-      "confidence": 0.0,
-      "word_count": 6,
-      "char_count": 41,
-      "processing_time_ms": 0
-    },
-    {
-      "page_number": 2,
-      "text": "DEMO OCR TEXT (pytesseract not available)",
-      "confidence": 0.0,
-      "word_count": 6,
-      "char_count": 41,
-      "processing_time_ms": 0
-    },
-    {
-      "page_number": 3,
-      "text": "DEMO OCR TEXT (pytesseract not available)",
-      "confidence": 0.0,
-      "word_count": 6,
-      "char_count": 41,
-      "processing_time_ms": 0
+      "text": "a\nq\né are a o> 4)\nSs\non\nAAT: 1)\n@ @ General tolerance DIN S0 2768 -medium\nq Fi Cerrar tren sharp ates Q1-O.nm 32,7\nZI, = Scratches and dents are not acceptable )\n[ | ' ecrranecra|\n0565°@ 7 AZ\n2@ patie) vometry_lathe_\nsample_v20 (1)\n\nStanlees Steet G",
+      "confidence": 0.7572,
+      "word_count": 51,
+      "char_count": 249,
+      "processing_time_ms": 661
     }
   ],
-  "ocr_engine": "pytesseract",
-  "processed_at": "2026-06-19T23:28:36+0100"
+  "ocr_engine": "tesseract",
+  "ocr_language": "eng",
+  "ocr_config": "--oem 1 --psm 3",
+  "preprocessing_enabled": true,
+  "processed_at": "2026-06-25T11:00:03.703747+00:00",
+  "total_processing_time_ms": 1059
 }

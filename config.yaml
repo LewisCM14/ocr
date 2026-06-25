@@ -5,12 +5,12 @@
 
 database:
   # SQL Server instance name or IP address
-  server: "localhost"
-  database: "ocr_pipeline"
+  # server: "localhost"
+  database: "ocr_pipeline.db"
   # ODBC driver - "ODBC Driver 17 for SQL Server" or "ODBC Driver 18 for SQL Server"
-  driver: "ODBC Driver 17 for SQL Server"
+  driver: "sqlite"
   # Use Windows Authentication (recommended for on-premises servers)
-  trusted_connection: true
+  # trusted_connection: true
   # SQL Authentication (set trusted_connection: false to use these)
   # username: "ocr_user"
   # password: "your_password"
@@ -31,7 +31,7 @@ output:
   formats:
     - "txt"   # Plain UTF-8 text file
     - "json"  # Structured JSON ready for Elasticsearch ingestion
-    # - "pdf"  # Searchable PDF — original image with invisible OCR text layer
+    - "pdf"  # Searchable PDF — original image with invisible OCR text layer
     #            # Requires ocr.engine = "tesseract". Opens in any PDF reader
     #            # and supports Ctrl+F text search. Uncomment to enable.
 
@@ -55,22 +55,22 @@ preprocessing:
   # Enable the full preprocessing chain (strongly recommended for old scans)
   enabled: true
   # Images with DPI below this threshold are upscaled before OCR
-  min_dpi: 200
+  min_dpi: 96
   # Target DPI after upscaling. Tesseract is optimised for 300 DPI.
-  target_dpi: 300
+  target_dpi: 96
   # Detect and correct page rotation (important for scanned documents)
-  deskew: true
+  deskew: false
   # Only apply deskew correction if the detected angle exceeds this value (degrees)
   deskew_threshold_degrees: 0.5
   # Apply non-local means denoising (helps with scan noise and aging artifacts)
-  denoise: true
+  denoise: false
   # Denoising filter strength. Higher = more aggressive. Range 3–15.
   denoise_strength: 10
   # Binarization method:
   #   sauvola  - adaptive thresholding, best for uneven illumination (recommended)
   #   otsu     - global thresholding, faster but less tolerant of lighting variation
   #   none     - skip binarization (pass grayscale directly to Tesseract)
-  binarization: "sauvola"
+  binarization: "none"
 
 pipeline:
   # Number of parallel worker processes
