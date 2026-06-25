@@ -33,6 +33,7 @@ class OCRConfig:
     engine: str = "tesseract"
     language: str = "eng"
     tesseract_config: str = "--oem 1 --psm 3"
+    tessdata_prefix: Optional[str] = None
     tesseract_cmd: Optional[str] = None
     default_dpi: int = 300
 
