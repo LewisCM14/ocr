@@ -300,6 +300,11 @@ def _tesseract_page_to_pdf(image: Any, language: str, config: str) -> bytes:
     Ask Tesseract to render a single PIL Image as a PDF with an embedded text layer and return the raw PDF bytes.
     The text layer is invisible to the reader but fully searchable; the visual content is the preprocessed image.
     '''
+    import os
+
+    if config.tessdata_prefix:
+        os.environ["TESSDATA_PREFIX"] = config.tessdata_prefix
+
     import pytesseract
     return pytesseract.image_to_pdf_or_hocr(
         image, lang=language, config=config, extension='pdf',

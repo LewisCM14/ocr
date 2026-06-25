@@ -45,9 +45,25 @@ ocr:
   # --psm 3  = Fully automatic page segmentation (best for mixed layouts)
   # For single-column docs: --psm 6
   tesseract_config: "--oem 1 --psm 3"
-  # Override Tesseract binary path if it is not on PATH.
-  # Leave commented out when using the conda environment (tesseract is on PATH).
-  # tesseract_cmd: "C:\\tools\\tesseract\\tesseract.exe"
+
+  # Path to the tessdata directory, exported as TESSDATA_PREFIX by the worker
+  # before it imports/calls pytesseract.
+  #
+  # WHY: conda-forge ships the tesseract binary WITHOUT language data. With
+  # TESSDATA_PREFIX unset, tesseract falls back to "./" and dies with
+  # "Error opening data file ./eng.traineddata ... couldn't load any languages".
+  # eng/osd.traineddata and pdf.ttf were copied into this folder. Setting it in
+  # the worker PROCESS (not just the shell) is what fixes it: an IDE-launched or
+  # scheduled process does NOT inherit `conda env config vars`.
+  tessdata_prefix: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\share\\tessdata"
+
+  # Tesseract binary. MUST be the conda binary that matches tessdata_prefix above.
+  # NOTE: previously pointed at ...\AppData\Local\Programs\Tesseract-OCR — a
+  # DIFFERENT install whose data was never fixed. Leaving that active meant the
+  # worker could invoke that binary and fail even though the conda command line
+  # worked. Pinning it here also removes the PATH dependency the old comment relied on.
+  tesseract_cmd: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\bin\\tesseract.exe"
+
   # DPI to assume when image metadata is missing or untrustworthy
   default_dpi: 300
 
