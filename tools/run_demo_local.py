@@ -8,6 +8,7 @@ placeholder text to demonstrate the output formats and directory layout.
 Example:
     python tools/run_demo_local.py assets/demo.tiff --out demo_output
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,11 +19,11 @@ from pathlib import Path
 from PIL import Image
 
 
-def ocr_page_text(img: Image.Image) -> tuple[str, float]:
-    """Return (text, confidence).
+def ocr_page_text(img: Image.Image) -> tuple[str, float, int]:
+    """Return (text, confidence, processing_time_ms).
 
     Uses pytesseract when available; otherwise returns placeholder text with
-    confidence 0.0.
+    confidence 0.0 and a processing time of 0.
     """
     try:
         import pytesseract
@@ -33,9 +34,9 @@ def ocr_page_text(img: Image.Image) -> tuple[str, float]:
         # pytesseract has no easy aggregated confidence here; return 1.0 as a
         # best-effort placeholder when text is present.
         conf = 1.0 if text else 0.0
-        return text, conf
+        return text, conf, t_ms
     except Exception:
-        return "DEMO OCR TEXT (pytesseract not available)", 0.0
+        return "DEMO OCR TEXT (pytesseract not available)", 0.0, 0
 
 
 def process_tiff(input_tiff: Path, out_dir: Path) -> None:
@@ -50,15 +51,17 @@ def process_tiff(input_tiff: Path, out_dir: Path) -> None:
         while True:
             page_num += 1
             frame = img.copy()
-            text, conf = ocr_page_text(frame)
-            pages.append({
-                "page_number": page_num,
-                "text": text,
-                "confidence": conf,
-                "word_count": len(text.split()) if text else 0,
-                "char_count": len(text) if text else 0,
-                "processing_time_ms": 0,
-            })
+            text, conf, t_ms = ocr_page_text(frame)
+            pages.append(
+                {
+                    "page_number": page_num,
+                    "text": text,
+                    "confidence": conf,
+                    "word_count": len(text.split()) if text else 0,
+                    "char_count": len(text) if text else 0,
+                    "processing_time_ms": t_ms,
+                }
+            )
             if text:
                 texts.append(text)
             img.seek(img.tell() + 1)
@@ -71,8 +74,6 @@ def process_tiff(input_tiff: Path, out_dir: Path) -> None:
 
     # Determine engine used (pytesseract when available)
     try:
-        import pytesseract  # type: ignore
-
         engine_name = "pytesseract"
     except Exception:
         engine_name = "mock"
@@ -88,7 +89,9 @@ def process_tiff(input_tiff: Path, out_dir: Path) -> None:
         "ocr_engine": engine_name,
         "processed_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
     }
-    (base.with_suffix(".json")).write_text(json.dumps(json_doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    (base.with_suffix(".json")).write_text(
+        json.dumps(json_doc, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(f"Wrote demo outputs to {out_dir}")
 
 

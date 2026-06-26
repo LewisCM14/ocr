@@ -38,13 +38,13 @@ output:
 ocr:
   # Engine to use. Currently supported: tesseract
   # Future GPU-capable alternatives: easyocr, paddleocr (see ocr_engine.py)
-  engine: "tesseract"
+  engine: "paddleocr"
   # Tesseract language pack(s). Use "eng+fra" for multiple languages.
-  language: "eng"
+  language: "en"
   # --oem 1  = LSTM neural net mode (best accuracy, recommended for Tesseract 5)
   # --psm 3  = Fully automatic page segmentation (best for mixed layouts)
   # For single-column docs: --psm 6
-  tesseract_config: "--oem 1 --psm 3"
+  # tesseract_config: "--oem 1 --psm 3"
 
   # Path to the tessdata directory, exported as TESSDATA_PREFIX by the worker
   # before it imports/calls pytesseract.
@@ -55,14 +55,14 @@ ocr:
   # eng/osd.traineddata and pdf.ttf were copied into this folder. Setting it in
   # the worker PROCESS (not just the shell) is what fixes it: an IDE-launched or
   # scheduled process does NOT inherit `conda env config vars`.
-  tessdata_prefix: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\share\\tessdata"
+  # tessdata_prefix: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\share\\tessdata"
 
   # Tesseract binary. MUST be the conda binary that matches tessdata_prefix above.
   # NOTE: previously pointed at ...\AppData\Local\Programs\Tesseract-OCR — a
   # DIFFERENT install whose data was never fixed. Leaving that active meant the
   # worker could invoke that binary and fail even though the conda command line
   # worked. Pinning it here also removes the PATH dependency the old comment relied on.
-  tesseract_cmd: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\bin\\tesseract.exe"
+  # tesseract_cmd: "C:\\...\\AppData\\Local\\miniconda3\\envs\\ocr-pipeline\\Library\\bin\\tesseract.exe"
 
   # DPI to assume when image metadata is missing or untrustworthy
   default_dpi: 300

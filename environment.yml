@@ -24,3 +24,8 @@ dependencies:
   - tqdm>=4.66
   - loguru>=0.7
   - psutil>=5.9
+  # PaddleOCR runtime installed via pip inside the conda environment
+  - pip
+  - pip:
+    - paddlepaddle>=2.5
+    - paddleocr>=2.0

@@ -41,6 +41,10 @@ requires-python = ">=3.11"
 dependencies = [
     # OCR engine Python bindings (Tesseract binary installed separately)
     "pytesseract>=0.3",
+    # PaddleOCR (CPU) — alternative OCR engine; installed via `uv sync`
+    "paddleocr>=2.0; python_version < '3.14'",
+    # PaddlePaddle runtime (CPU). For GPU installs, install the GPU wheel manually.
+    "paddlepaddle>=2.5; python_version < '3.14'",
 
     # Image handling and preprocessing
     "pillow>=10.0",

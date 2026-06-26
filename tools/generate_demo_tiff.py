@@ -4,6 +4,7 @@
 Example:
     python tools/generate_demo_tiff.py assets/demo.tiff --pages 3 --dpi 300
 """
+
 from __future__ import annotations
 
 import argparse
@@ -19,7 +20,7 @@ def generate_tiff(path: Path, pages: int = 2, dpi: int = 300) -> None:
         img = Image.new("RGB", (1200, 300), color="white")
         draw = ImageDraw.Draw(img)
         font = ImageFont.load_default()
-        text = f"DEMO OCR PAGE {i+1}\n\nThis is a synthetic TIFF for local pipeline demos."
+        text = f"DEMO OCR PAGE {i + 1}\n\nThis is a synthetic TIFF for local pipeline demos."
         draw.text((40, 40), text, fill="black", font=font)
         images.append(img)
 
