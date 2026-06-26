@@ -38,7 +38,7 @@ output:
 ocr:
   # Engine to use. Currently supported: tesseract
   # Future GPU-capable alternatives: easyocr, paddleocr (see ocr_engine.py)
-  engine: "paddleocr"
+  engine: "easyocr"
   # Tesseract language pack(s). Use "eng+fra" for multiple languages.
   language: "en"
   # --oem 1  = LSTM neural net mode (best accuracy, recommended for Tesseract 5)

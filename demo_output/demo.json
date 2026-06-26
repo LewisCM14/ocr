@@ -4,21 +4,21 @@
   "relative_path": "demo.tiff",
   "file_size_bytes": 1251352,
   "page_count": 1,
-  "full_text": "21,9\nR0.3\n3\nR19\nx4\n30\n0.0\n3\n27\n21,5\n0.02\n16/\n26\n(28\nA\n15\nA\n40\n070\n10\nR1\nR3\nR1\n23)\nL\nR0.3\n2 PLACES\nR19\n1x45*\n7\nM3IA SIH1\n1x45\n13\n4:1)\n8\n(21\n320\n21,9\n190,114\n7601\nA-A1:1)\n36\n(30)\nGeneral tolerance DN /S0 2768-medium\nDeburr andbreak sharp edges 0, 1.0.3mm\nScratches and dents are not acceptable\nGewichtFormat\n0.5x45*32\nA3\n30.5x45\nDate  Innale\n23\na\nxometry_lathe\n34\nsample_v2.0 (1)\n2\nStainless Steel\nMaterial\n2:1",
+  "full_text": "0,028] 2 PLACES RO } Ilo Vew C(4:1) E 04,0,2 0509 Se A-A ( 1:1| Generol foleronce DI ISO 2768 -medium Deburr ond breok sharp edges 0 1OBmm Scrofches ond dents ore not occeofoble Uorcnt 05k45\" Wale umale xometry_lathe sample_V2.0 (11 Sanler Steei R\" 05,457",
   "pages": [
     {
       "page_number": 1,
-      "text": "21,9\nR0.3\n3\nR19\nx4\n30\n0.0\n3\n27\n21,5\n0.02\n16/\n26\n(28\nA\n15\nA\n40\n070\n10\nR1\nR3\nR1\n23)\nL\nR0.3\n2 PLACES\nR19\n1x45*\n7\nM3IA SIH1\n1x45\n13\n4:1)\n8\n(21\n320\n21,9\n190,114\n7601\nA-A1:1)\n36\n(30)\nGeneral tolerance DN /S0 2768-medium\nDeburr andbreak sharp edges 0, 1.0.3mm\nScratches and dents are not acceptable\nGewichtFormat\n0.5x45*32\nA3\n30.5x45\nDate  Innale\n23\na\nxometry_lathe\n34\nsample_v2.0 (1)\n2\nStainless Steel\nMaterial\n2:1",
-      "confidence": 0.8661,
-      "word_count": 79,
-      "char_count": 408,
-      "processing_time_ms": 2305
+      "text": "0,028] 2 PLACES RO } Ilo Vew C(4:1) E 04,0,2 0509 Se A-A ( 1:1| Generol foleronce DI ISO 2768 -medium Deburr ond breok sharp edges 0 1OBmm Scrofches ond dents ore not occeofoble Uorcnt 05k45\" Wale umale xometry_lathe sample_V2.0 (11 Sanler Steei R\" 05,457",
+      "confidence": 0.2719,
+      "word_count": 45,
+      "char_count": 255,
+      "processing_time_ms": 1576
     }
   ],
-  "ocr_engine": "paddleocr",
+  "ocr_engine": "easyocr",
   "ocr_language": "en",
   "ocr_config": "--oem 1 --psm 3",
   "preprocessing_enabled": true,
-  "processed_at": "2026-06-26T22:46:07.318971+00:00",
-  "total_processing_time_ms": 2316
+  "processed_at": "2026-06-26T22:57:29.787799+00:00",
+  "total_processing_time_ms": 1582
 }

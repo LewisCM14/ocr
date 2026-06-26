@@ -54,6 +54,9 @@ dependencies = [
     "numpy>=1.26",
     "scikit-image>=0.22",      # Sauvola binarisation for historical documents
 
+    # EasyOCR — lightweight OCR alternative; install when Python ABI supported
+    "easyocr>=1.6; python_version < '3.14'",
+
     # Database
     "sqlalchemy>=2.0",
     "pyodbc>=4.0",             # MSSQL ODBC driver wrapper (driver installed separately)
