@@ -12,7 +12,7 @@ All steps are individually configurable via PreprocessingConfig.
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional, Tuple
-import cv2
+from skimage import restoration, filters, transform, util
 import numpy as np
 from PIL import Image
 from loguru import logger
@@ -50,15 +50,25 @@ class ImagePreprocessor:
             page = page.convert("L")
         arr: np.ndarray = np.array(page, dtype=np.uint8)
 
-        # Denoising
+        # Denoising (use scikit-image non-local means)
         if self.cfg.denoise:
             logger.info("Applying denoising")
-            arr = cv2.fastNlMeansDenoising(
-                arr,
-                h=float(self.cfg.denoise_strength),
-                templateWindowSize=7,
-                searchWindowSize=21,
-            )
+            try:
+                arr_float = util.img_as_float(arr)
+                sigma_est = float(
+                    restoration.estimate_sigma(arr_float, multichannel=False)
+                )
+                h = float(self.cfg.denoise_strength) * max(1e-12, sigma_est)
+                denoised = restoration.denoise_nl_means(
+                    arr_float,
+                    h=h,
+                    patch_size=7,
+                    patch_distance=21,
+                    fast_mode=True,
+                )
+                arr = util.img_as_ubyte(denoised)
+            except Exception:
+                logger.exception("Denoising failed; continuing with original image")
 
         # Deskewing
         if self.cfg.deskew:
@@ -191,32 +201,59 @@ class ImagePreprocessor:
 
     @staticmethod
     def _estimate_skew(arr: np.ndarray) -> float:
-        """Estimate page rotation angle using the minimum-area bounding rectangle of all foreground (dark) pixels. Returns angle in degrees; positive values indicate clockwise tilt."""
-        # Invert so text pixels are white (required for threshold)
-        _, thresh = cv2.threshold(arr, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        coords = np.column_stack(np.nonzero(thresh > 0))
-        if len(coords) < 5:
+        """Estimate page rotation using a robust PCA of foreground pixel coordinates.
+
+        Returns angle in degrees; positive values indicate clockwise tilt.
+        This approach uses a binary threshold (Otsu) to locate dark/text pixels,
+        performs PCA on their coordinates and returns the principal axis angle.
+        """
+        try:
+            th = filters.threshold_otsu(arr)
+            bw = arr < th  # True for dark/text pixels
+            coords = np.column_stack(np.nonzero(bw))
+            if len(coords) < 5:
+                return 0.0
+            # PCA on coordinates (rows=y, cols=x)
+            coords_mean = coords.mean(axis=0)
+            centered = coords - coords_mean
+            cov = np.cov(centered, rowvar=False)
+            eigvals, eigvecs = np.linalg.eigh(cov)
+            principal = eigvecs[:, np.argmax(eigvals)]
+            # principal is [v_y, v_x]; angle relative to x-axis:
+            angle_rad = float(np.arctan2(principal[0], principal[1]))
+            angle_deg = np.degrees(angle_rad)
+            # Normalize to (-45, 45]
+            if angle_deg < -45.0:
+                angle_deg += 90.0
+            elif angle_deg > 45.0:
+                angle_deg -= 90.0
+            # In image coordinates positive angle corresponds to clockwise tilt,
+            # so return angle_deg directly.
+            return float(angle_deg)
+        except Exception:
             return 0.0
-        angle = cv2.minAreaRect(coords.astype(np.float32))[-1]
-        # cv2.minAreaRect returns angles in [-90, 0).
-        # Adjust to the range (-45, 45] so that near-horizontal pages are ~0°.
-        if angle < -45.0:
-            angle += 90.0
-        return -angle  # negate: positive = clockwise rotation needed
 
     @staticmethod
     def _rotate(arr: np.ndarray, angle: float) -> np.ndarray:
-        """Rotate the image by `angle` degrees, filling new pixels with white."""
-        h, w = arr.shape[:2]
-        M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
-        return cv2.warpAffine(
-            arr,
-            M,
-            (w, h),
-            flags=cv2.INTER_CUBIC,
-            borderMode=cv2.BORDER_CONSTANT,
-            borderValue=255,
-        )
+        """Rotate the image by `angle` degrees (positive = clockwise tilt correction).
+
+        Uses skimage.transform.rotate (positive angles rotate counter-clockwise),
+        which matches the existing behaviour where the method receives the
+        correction angle and applies a counter-clockwise rotation to deskew.
+        """
+        try:
+            rotated = transform.rotate(
+                arr,
+                angle,
+                resize=False,
+                order=3,
+                mode="constant",
+                cval=255,
+                preserve_range=True,
+            )
+            return np.asarray(rotated, dtype=np.uint8)
+        except Exception:
+            return arr
 
     @staticmethod
     def _sauvola(arr: np.ndarray) -> np.ndarray:
@@ -230,5 +267,6 @@ class ImagePreprocessor:
     @staticmethod
     def _otsu(arr: np.ndarray) -> np.ndarray:
         """Global Otsu binarisation — faster but assumes bimodal histogram."""
-        _, binary = cv2.threshold(arr, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        th = filters.threshold_otsu(arr)
+        binary = (arr > th).astype(np.uint8) * 255
         return binary

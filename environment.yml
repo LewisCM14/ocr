@@ -3,29 +3,21 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.11
-  # Tesseract OCR engine + Python bindings
-  - tesseract=5.3.*
-  - pytesseract=0.3.*
-  # Image handling and preprocessing
-  - pillow>=10.0
-  - opencv>=4.8          # conda-forge package name (includes Python bindings)
-  - numpy>=1.26
-  - scikit-image>=0.22   # Sauvola binarization for historical docs
-  # Database
-  - sqlalchemy>=2.0
-  - pyodbc>=4.0          # MSSQL ODBC driver wrapper
-  # Configuration and CLI
-  - pyyaml>=6.0
-  - click>=8.1
-  # Searchable PDF output
-  - pypdf>=4.0             # merge per-page PDFs produced by Tesseract
-  # Monitoring and logging
-  - tqdm>=4.66
-  - loguru>=0.7
-  - psutil>=5.9
-  # PaddleOCR runtime installed via pip inside the conda environment
-  - pip
-  - pip:
-    - paddlepaddle>=2.5
-    - paddleocr>=2.0
+  - python=3.14.6
+  - tesseract=5.5.2
+  - pytesseract=0.3.13
+  - pillow=12.2.0
+  - numpy=2.5.0
+  - scikit-image=0.26.0
+  - sqlalchemy=2.0.51
+  - pyodbc=5.3.0
+  - pyyaml=6.0.3
+  - click=8.4.1
+  - pypdf=6.14.2
+  - tqdm=4.68.3
+  - loguru=0.7.3
+  - psutil=7.2.2
+  # - pip
+  # - pip:
+  #   - paddlepaddle>=2.5
+  #   - paddleocr>=2.0

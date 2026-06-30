@@ -36,42 +36,40 @@ packages = ["pipeline", "scripts"]
 name = "ocr-pipeline"
 version = "0.1.0"
 description = "Batch OCR pipeline for scanned TIFF documents"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 
 dependencies = [
     # OCR engine Python bindings (Tesseract binary installed separately)
-    "pytesseract>=0.3",
+    "pytesseract==0.3.13",
     # PaddleOCR (CPU) — alternative OCR engine; installed via `uv sync`
     "paddleocr>=2.0; python_version < '3.14'",
     # PaddlePaddle runtime (CPU). For GPU installs, install the GPU wheel manually.
     "paddlepaddle>=2.5; python_version < '3.14'",
 
     # Image handling and preprocessing
-    "pillow>=10.0",
-    # opencv-python-headless omits GUI modules (imshow etc.) — sufficient for
-    # server/pipeline use. Swap for opencv-python if you need display functions.
-    "opencv-python-headless>=4.8",
-    "numpy>=1.26",
-    "scikit-image>=0.22",      # Sauvola binarisation for historical documents
+    "pillow==12.2.0",
+    # OpenCV removed to avoid conda dependency conflicts; use scikit-image instead
+    "numpy==2.5.0",
+    "scikit-image==0.26.0",      # Sauvola binarisation for historical documents
 
     # EasyOCR — lightweight OCR alternative; install when Python ABI supported
     "easyocr>=1.6; python_version < '3.14'",
 
     # Database
-    "sqlalchemy>=2.0",
-    "pyodbc>=4.0",             # MSSQL ODBC driver wrapper (driver installed separately)
+    "sqlalchemy==2.0.51",
+    "pyodbc==5.3.0",             # MSSQL ODBC driver wrapper (driver installed separately)
 
     # Configuration and CLI
-    "pyyaml>=6.0",
-    "click>=8.1",
+    "pyyaml==6.0.3",
+    "click==8.4.1",
 
     # Searchable PDF output
-    "pypdf>=4.0",              # merge per-page PDFs produced by Tesseract
+    "pypdf==6.14.2",              # merge per-page PDFs produced by Tesseract
 
     # Monitoring and logging
-    "tqdm>=4.66",
-    "loguru>=0.7",
-    "psutil>=5.9",
+    "tqdm==4.68.3",
+    "loguru==0.7.3",
+    "psutil==7.2.2",
 ]
 
 [project.optional-dependencies]
@@ -139,7 +137,7 @@ exclude = [".venv", "venv", "dist", "build", "__pycache__"]
 
 # mypy static type checking
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 ignore_missing_imports = true
 show_error_codes = true
 files = ["pipeline", "scripts"]
